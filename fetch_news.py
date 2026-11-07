@@ -16,6 +16,7 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 OUT = BASE / "docs" / "news.json"
 MAX_AGE_DAYS = 3
+MAX_AGE_BY_CATEGORY = {"health": 7, "science": 7}  # Bereiche mit wenigen neuen Artikeln
 MAX_PER_FEED = 40
 UA = "Mozilla/5.0 (compatible; NachrichtenApp/1.0)"
 
@@ -144,7 +145,7 @@ def main():
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(fetch, cfg["feeds"]))
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=MAX_AGE_DAYS)
+    now = datetime.now(timezone.utc)
     seen, articles = set(), []
     # Speziellere Feeds zuerst, damit Doppelte in der genaueren Kategorie landen
     # Allgemeine Bereiche zuletzt; alle anderen (z. B. Märkte, Gesundheit, Regional) = 0
@@ -154,7 +155,8 @@ def main():
             key = a["link"].split("?")[0]
             if key in seen:
                 continue
-            if a["date"] and datetime.fromisoformat(a["date"]) < cutoff:
+            max_age = timedelta(days=MAX_AGE_BY_CATEGORY.get(a["category"], MAX_AGE_DAYS))
+            if a["date"] and datetime.fromisoformat(a["date"]) < now - max_age:
                 continue
             seen.add(key)
             articles.append(a)
