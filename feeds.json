@@ -1,9 +1,12 @@
 {
   "categories": [
     { "id": "news", "name": "Nachrichten" },
+    { "id": "world", "name": "International" },
     { "id": "business", "name": "Unternehmen" },
     { "id": "markets", "name": "Märkte" },
     { "id": "tech", "name": "Technik" },
+    { "id": "science", "name": "Wissenschaft" },
+    { "id": "health", "name": "Gesundheit" },
     { "id": "regional", "name": "Regional" }
   ],
   "feeds": [
@@ -13,6 +16,20 @@
     { "name": "FAZ", "category": "news", "url": "https://www.faz.net/rss/aktuell/" },
     { "name": "Süddeutsche", "category": "news", "url": "https://rss.sueddeutsche.de/rss/Topthemen" },
     { "name": "Deutschlandfunk", "category": "news", "url": "https://www.deutschlandfunk.de/nachrichten-100.rss" },
+    { "name": "Tagesschau Ausland", "category": "world", "url": "https://www.tagesschau.de/ausland/index~rss2.xml" },
+    { "name": "Spiegel Ausland", "category": "world", "url": "https://www.spiegel.de/ausland/index.rss" },
+    { "name": "FAZ Ausland", "category": "world", "url": "https://www.faz.net/rss/aktuell/politik/ausland/" },
+    { "name": "Zeit Ausland", "category": "world", "url": "https://newsfeed.zeit.de/politik/ausland/index" },
+    { "name": "Spiegel Wissenschaft", "category": "science", "url": "https://www.spiegel.de/wissenschaft/index.rss" },
+    { "name": "Tagesschau Wissen", "category": "science", "url": "https://www.tagesschau.de/wissen/index~rss2.xml" },
+    { "name": "Spektrum", "category": "science", "url": "https://www.spektrum.de/alias/rss/spektrum-de-rss-feed/996406" },
+    { "name": "FAZ Wissen", "category": "science", "url": "https://www.faz.net/rss/aktuell/wissen/" },
+    { "name": "scinexx", "category": "science", "url": "https://www.scinexx.de/feed/" },
+    { "name": "Spiegel Gesundheit", "category": "health", "url": "https://www.spiegel.de/gesundheit/index.rss" },
+    { "name": "Tagesschau Gesundheit", "category": "health", "url": "https://www.tagesschau.de/wissen/gesundheit/index~rss2.xml" },
+    { "name": "Ärzteblatt", "category": "health", "url": "https://www.aerzteblatt.de/rss/news.asp" },
+    { "name": "Zeit Gesundheit", "category": "health", "url": "https://newsfeed.zeit.de/gesundheit/index" },
+    { "name": "FAZ Medizin", "category": "health", "url": "https://www.faz.net/rss/aktuell/wissen/medizin-ernaehrung/" },
     { "name": "Handelsblatt Unternehmen", "category": "business", "url": "https://www.handelsblatt.com/contentexport/feed/unternehmen" },
     { "name": "manager magazin", "category": "business", "url": "https://www.manager-magazin.de/news/index.rss" },
     { "name": "WirtschaftsWoche", "category": "business", "url": "https://www.wiwo.de/contentexport/feed/rss/schlagzeilen" },

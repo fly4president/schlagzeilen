@@ -147,7 +147,8 @@ def main():
     cutoff = datetime.now(timezone.utc) - timedelta(days=MAX_AGE_DAYS)
     seen, articles = set(), []
     # Speziellere Feeds zuerst, damit Doppelte in der genaueren Kategorie landen
-    rank = {"news": 2, "business": 1}  # alle anderen (Märkte, Technik, Regional) = 0
+    # Allgemeine Bereiche zuletzt; alle anderen (z. B. Märkte, Gesundheit, Regional) = 0
+    rank = {"news": 2, "business": 1, "science": 1, "world": 1}
     for items, _ in sorted(results, key=lambda r: rank.get(r[0][0]["category"], 0) if r[0] else 0):
         for a in items:
             key = a["link"].split("?")[0]
