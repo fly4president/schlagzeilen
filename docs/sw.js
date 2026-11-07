@@ -1,5 +1,5 @@
 // Speichert die App fuer den Offline-Start. Nachrichten immer zuerst frisch aus dem Netz.
-const CACHE = "schlagzeilen-v1";
+const CACHE = "schlagzeilen-v2";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -16,7 +16,8 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   if (url.pathname.endsWith("news.json")) return; // die App kuemmert sich selbst darum
   e.respondWith(
-    fetch(e.request)
+    // no-cache: beim Server nachfragen, ob es eine neue App-Version gibt (sonst bis zu 10 Min. alt)
+    fetch(e.request, { cache: "no-cache" })
       .then((r) => { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return r; })
       .catch(() => caches.match(e.request, { ignoreSearch: true }))
   );
