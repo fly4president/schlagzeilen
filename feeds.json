@@ -1,6 +1,8 @@
 {
   "categories": [
     { "id": "news", "name": "Nachrichten" },
+    { "id": "business", "name": "Unternehmen" },
+    { "id": "markets", "name": "Märkte" },
     { "id": "tech", "name": "Technik" },
     { "id": "regional", "name": "Regional" }
   ],
@@ -11,6 +13,14 @@
     { "name": "FAZ", "category": "news", "url": "https://www.faz.net/rss/aktuell/" },
     { "name": "Süddeutsche", "category": "news", "url": "https://rss.sueddeutsche.de/rss/Topthemen" },
     { "name": "Deutschlandfunk", "category": "news", "url": "https://www.deutschlandfunk.de/nachrichten-100.rss" },
+    { "name": "Handelsblatt Unternehmen", "category": "business", "url": "https://www.handelsblatt.com/contentexport/feed/unternehmen" },
+    { "name": "manager magazin", "category": "business", "url": "https://www.manager-magazin.de/news/index.rss" },
+    { "name": "WirtschaftsWoche", "category": "business", "url": "https://www.wiwo.de/contentexport/feed/rss/schlagzeilen" },
+    { "name": "FAZ Wirtschaft", "category": "business", "url": "https://www.faz.net/rss/aktuell/wirtschaft/" },
+    { "name": "Spiegel Wirtschaft", "category": "business", "url": "https://www.spiegel.de/wirtschaft/index.rss" },
+    { "name": "Handelsblatt Märkte", "category": "markets", "url": "https://www.handelsblatt.com/contentexport/feed/finanzen" },
+    { "name": "FAZ Finanzen", "category": "markets", "url": "https://www.faz.net/rss/aktuell/finanzen/" },
+    { "name": "Tagesschau Börse", "category": "markets", "url": "https://www.tagesschau.de/wirtschaft/finanzen/index~rss2.xml" },
     { "name": "heise", "category": "tech", "url": "https://www.heise.de/rss/heise-atom.xml" },
     { "name": "Golem", "category": "tech", "url": "https://rss.golem.de/rss.php?feed=RSS2.0" },
     { "name": "t3n", "category": "tech", "url": "https://t3n.de/rss.xml" },
