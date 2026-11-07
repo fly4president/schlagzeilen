@@ -1,0 +1,22 @@
+{
+  "categories": [
+    { "id": "news", "name": "Nachrichten" },
+    { "id": "tech", "name": "Technik" },
+    { "id": "regional", "name": "Regional" }
+  ],
+  "feeds": [
+    { "name": "Tagesschau", "category": "news", "url": "https://www.tagesschau.de/index~rss2.xml" },
+    { "name": "Spiegel", "category": "news", "url": "https://www.spiegel.de/schlagzeilen/index.rss" },
+    { "name": "Zeit", "category": "news", "url": "https://newsfeed.zeit.de/index" },
+    { "name": "FAZ", "category": "news", "url": "https://www.faz.net/rss/aktuell/" },
+    { "name": "Süddeutsche", "category": "news", "url": "https://rss.sueddeutsche.de/rss/Topthemen" },
+    { "name": "Deutschlandfunk", "category": "news", "url": "https://www.deutschlandfunk.de/nachrichten-100.rss" },
+    { "name": "heise", "category": "tech", "url": "https://www.heise.de/rss/heise-atom.xml" },
+    { "name": "Golem", "category": "tech", "url": "https://rss.golem.de/rss.php?feed=RSS2.0" },
+    { "name": "t3n", "category": "tech", "url": "https://t3n.de/rss.xml" },
+    { "name": "Taunus Zeitung", "category": "regional", "url": "https://www.fnp.de/lokales/hochtaunus/rssfeed.rdf" },
+    { "name": "hessenschau", "category": "regional", "url": "https://www.hessenschau.de/index.rss" },
+    { "name": "FAZ Rhein-Main", "category": "regional", "url": "https://www.faz.net/rss/aktuell/rhein-main/" },
+    { "name": "FR Rhein-Main", "category": "regional", "url": "https://www.fr.de/rhein-main/rssfeed.rdf" }
+  ]
+}

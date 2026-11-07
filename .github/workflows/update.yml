@@ -1,0 +1,33 @@
+name: Nachrichten aktualisieren
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # alle 20 Minuten
+  workflow_dispatch:          # zusaetzlich per Knopfdruck auf GitHub
+  push:
+    paths: ["feeds.json", "fetch_news.py"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-news
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python fetch_news.py
+      - name: Ergebnis speichern
+        run: |
+          git config user.name "nachrichten-bot"
+          git config user.email "nachrichten-bot@users.noreply.github.com"
+          git add docs/news.json
+          git commit -m "Nachrichten aktualisiert" || exit 0
+          git pull --rebase
+          git push

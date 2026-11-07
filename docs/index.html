@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meine Schlagzeilen</title>
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: eine ruhige Lesespalte, Tabs oben fest, Einstellungen als Blatt von unten */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --ink: #18212a;
+  --muted: #5c6873;
+  --line: #dfe4e9;
+  --accent: #1d5c86;
+  --accent-soft: #e2edf5;
+  --new: #c2591a;
+  --font-head: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --scale: 1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181c; --surface: #1c2227; --ink: #e6eaee; --muted: #93a0ab;
+    --line: #2b333a; --accent: #7db6e0; --accent-soft: #1f3343; --new: #f0965c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181c; --surface: #1c2227; --ink: #e6eaee; --muted: #93a0ab;
+  --line: #2b333a; --accent: #7db6e0; --accent-soft: #1f3343; --new: #f0965c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-ui); font-size: calc(16px * var(--scale)); line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 30; background: var(--bg);
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.wrap {
+  max-width: 720px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Kopf */
+header {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top { display: flex; align-items: center; gap: 8px; padding-block: 12px 6px; }
+.brand { flex: 1; min-width: 0; }
+.brand h1 { margin: 0; font: 650 1.35em/1.1 var(--font-head); letter-spacing: -0.01em; }
+.brand small { color: var(--muted); font-size: 0.78em; }
+.icon-btn {
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; flex: none;
+}
+.icon-btn:hover { background: var(--accent-soft); }
+.icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.spin svg { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.search { padding-block: 4px 8px; }
+.search input {
+  width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 0.95em;
+}
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-block: 2px 10px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; padding: 7px 14px; border-radius: 999px; font-size: 0.9em; font-weight: 500;
+  border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+}
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.tab .count { opacity: 0.75; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+/* Liste */
+main { padding-block: 6px 60px; }
+.day {
+  margin: 22px 0 6px; font-size: 0.75em; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.notice {
+  margin-top: 14px; padding: 10px 14px; border-radius: 12px; font-size: 0.88em;
+  background: var(--accent-soft); color: var(--ink);
+}
+article {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 14px;
+  padding-block: 14px; border-bottom: 1px solid var(--line);
+}
+article .meta { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-size: 0.78em; color: var(--muted); }
+article .meta b { color: var(--accent); font-weight: 600; }
+.dot-new { width: 7px; height: 7px; border-radius: 50%; background: var(--new); flex: none; }
+article a.main { color: inherit; text-decoration: none; min-width: 0; }
+article h2 { margin: 0 0 4px; font: 500 1.08em/1.3 var(--font-head); text-wrap: pretty; }
+article p {
+  margin: 0; color: var(--muted); font-size: 0.9em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+article img {
+  width: 92px; height: 92px; object-fit: cover; border-radius: 10px; background: var(--line);
+}
+article.read h2, article.read p { opacity: 0.55; }
+.actions { grid-column: 1 / -1; display: flex; gap: 2px; margin-left: -10px; }
+.actions button {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px;
+  font-size: 0.8em; color: var(--muted);
+}
+.actions button:hover { background: var(--accent-soft); color: var(--ink); }
+.actions svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.actions button.on { color: var(--accent); }
+.actions button.on svg { fill: currentColor; }
+.empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+.empty h3 { font: 500 1.2em var(--font-head); color: var(--ink); margin: 0 0 6px; }
+.more { display: block; margin: 20px auto 0; padding: 10px 22px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+
+/* Einstellungen */
+.sheet-bg { position: fixed; inset: 0; background: rgb(0 0 0 / 0.4); z-index: 40; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 88vh; overflow-y: auto;
+  background: var(--surface); border-radius: 18px 18px 0 0;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+.sheet .wrap { padding-block: 8px 0; }
+.grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 6px auto 10px; }
+.sheet h3 { font: 650 1.2em var(--font-head); margin: 4px 0 4px; }
+.sheet h4 { margin: 22px 0 8px; font-size: 0.75em; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.sheet .hint { font-size: 0.85em; color: var(--muted); margin: 0 0 8px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 9px; border-bottom: 1px solid var(--line); }
+.row label { flex: 1; }
+.row small { color: var(--muted); }
+input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg button { flex: 1; padding: 9px 6px; font-size: 0.88em; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 6px 5px 12px; border-radius: 999px; background: var(--accent-soft); font-size: 0.88em; }
+.chip button { width: 24px; height: 24px; border-radius: 50%; }
+.addrow { display: flex; gap: 8px; }
+.addrow input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+.addrow button { padding: 9px 16px; border-radius: 10px; background: var(--accent); color: var(--bg); font-weight: 600; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 0.9em; z-index: 50;
+}
+@media (prefers-reduced-motion: reduce) { .spin svg { animation: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <h1>Meine Schlagzeilen</h1>
+        <small id="status">Wird geladen …</small>
+      </div>
+      <button class="icon-btn" id="refresh" aria-label="Aktualisieren">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+      </button>
+      <button class="icon-btn" id="openSettings" aria-label="Einstellungen">
+        <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
+    <div class="search"><input id="q" type="search" placeholder="Schlagzeilen durchsuchen" autocomplete="off"></div>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+  </div>
+</header>
+
+<main class="wrap" id="list"></main>
+
+<div class="sheet-bg" id="sheetBg" hidden></div>
+<section class="sheet" id="sheet" hidden aria-label="Einstellungen">
+  <div class="wrap">
+    <div class="grab"></div>
+    <h3>Einstellungen</h3>
+
+    <h4>Ausgeblendete Begriffe</h4>
+    <p class="hint">Artikel mit diesen Wörtern in Titel oder Text werden nicht angezeigt.</p>
+    <form class="addrow" id="blockForm">
+      <input id="blockInput" placeholder="z. B. Fußball" autocomplete="off">
+      <button type="submit">Hinzufügen</button>
+    </form>
+    <div class="chips" id="blockChips"></div>
+
+    <h4>Quellen</h4>
+    <div id="sourceList"></div>
+
+    <h4>Darstellung</h4>
+    <div class="seg" id="themeSeg">
+      <button data-v="auto">Automatisch</button><button data-v="light">Hell</button><button data-v="dark">Dunkel</button>
+    </div>
+    <div class="seg" id="sizeSeg" style="margin-top:8px">
+      <button data-v="0.92">Klein</button><button data-v="1">Normal</button><button data-v="1.12">Groß</button>
+    </div>
+    <div class="row">
+      <label for="imgToggle">Vorschaubilder anzeigen</label>
+      <input type="checkbox" id="imgToggle">
+    </div>
+    <div class="row">
+      <label for="readToggle">Gelesene Artikel ausblenden</label>
+      <input type="checkbox" id="readToggle">
+    </div>
+  </div>
+</section>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const ICON = {
+  bookmark: '<svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 13v7h14v-7"/></svg>',
+};
+const PAGE = 40;
+
+// ---------- Speicher ----------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("ms_" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("ms_" + k, JSON.stringify(v)); } catch {} },
+};
+const S = {
+  tab: store.get("tab", "all"),
+  hiddenSources: store.get("hiddenSources", []),
+  blocked: store.get("blocked", []),
+  saved: store.get("saved", []),          // ganze Artikel, damit sie auch nach Tagen bleiben
+  read: store.get("read", []),            // Links
+  theme: store.get("theme", "auto"),
+  scale: store.get("scale", 1),
+  images: store.get("images", true),
+  hideRead: store.get("hideRead", false),
+  lastVisit: store.get("lastVisit", null),
+};
+let data = null, shown = PAGE, query = "";
+const prevVisit = S.lastVisit;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function applyLook() {
+  const r = document.documentElement;
+  if (S.theme === "auto") r.removeAttribute("data-theme"); else r.setAttribute("data-theme", S.theme);
+  r.style.setProperty("--scale", S.scale);
+  const dark = S.theme === "dark" || (S.theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", dark ? "#14181c" : "#f3f5f7"));
+}
+
+// ---------- Zeit ----------
+function rel(iso) {
+  if (!iso) return "";
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (m < 1) return "gerade eben";
+  if (m < 60) return `vor ${m} Min.`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `vor ${h} Std.`;
+  return new Date(iso).toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+}
+function dayLabel(iso) {
+  if (!iso) return "Ohne Datum";
+  const d = new Date(iso), t = new Date();
+  const start = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((start(t) - start(d)) / 86400000);
+  if (diff === 0) return "Heute";
+  if (diff === 1) return "Gestern";
+  return d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+}
+
+// ---------- Daten ----------
+async function load(manual) {
+  const btn = $("refresh");
+  btn.classList.add("spin");
+  try {
+    const r = await fetch("news.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    data = await r.json();
+    store.set("cache", data);
+    if (manual) toast("Aktualisiert");
+  } catch {
+    data = data || store.get("cache", null);
+    toast(data ? "Keine Verbindung, zeige gespeicherte Nachrichten" : "Nachrichten konnten nicht geladen werden");
+  } finally {
+    btn.classList.remove("spin");
+  }
+  render();
+}
+
+function isBlocked(a) {
+  if (!S.blocked.length) return false;
+  const t = (a.title + " " + a.summary).toLowerCase();
+  return S.blocked.some((w) => t.includes(w.toLowerCase()));
+}
+function visible(tab) {
+  let list;
+  if (tab === "saved") list = S.saved;
+  else {
+    list = (data?.articles || []).filter((a) => !S.hiddenSources.includes(a.source) && !isBlocked(a));
+    if (tab !== "all") list = list.filter((a) => a.category === tab);
+    if (S.hideRead) list = list.filter((a) => !S.read.includes(a.link));
+  }
+  if (query) {
+    const q = query.toLowerCase();
+    list = list.filter((a) => (a.title + " " + a.summary + " " + a.source).toLowerCase().includes(q));
+  }
+  return list;
+}
+
+// ---------- Anzeige ----------
+function renderTabs() {
+  const tabs = [{ id: "all", name: "Alle" }, ...(data?.categories || []), { id: "saved", name: "Merkliste" }];
+  $("tabs").innerHTML = tabs.map((t) => {
+    const n = t.id === "saved" ? S.saved.length : visible(t.id).length;
+    return `<button class="tab" role="tab" data-tab="${t.id}" aria-selected="${S.tab === t.id}">${esc(t.name)}<span class="count">${n}</span></button>`;
+  }).join("");
+}
+
+function card(a) {
+  const saved = S.saved.some((s) => s.link === a.link);
+  const isNew = prevVisit && a.date && a.date > prevVisit && S.tab !== "saved";
+  const img = S.images && a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
+  return `<article class="${S.read.includes(a.link) ? "read" : ""}" data-link="${esc(a.link)}">
+    <div class="meta">${isNew ? '<span class="dot-new" title="Neu seit deinem letzten Besuch"></span>' : ""}<b>${esc(a.source)}</b><span>· ${rel(a.date)}</span></div>
+    <a class="main" href="${esc(a.link)}" target="_blank" rel="noopener">
+      <h2>${esc(a.title)}</h2>${a.summary ? `<p>${esc(a.summary)}</p>` : ""}
+    </a>${img}
+    <div class="actions">
+      <button data-act="save" class="${saved ? "on" : ""}">${ICON.bookmark}${saved ? "Gemerkt" : "Merken"}</button>
+      <button data-act="share">${ICON.share}Teilen</button>
+    </div>
+  </article>`;
+}
+
+function render() {
+  renderTabs();
+  const list = visible(S.tab);
+  const el = $("list");
+  if (data) {
+    const upd = new Date(data.updated);
+    $("status").textContent = `Stand: ${upd.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr · ${rel(data.updated)}`;
+  }
+  let html = "";
+  if (S.tab !== "saved" && data?.failed?.length) {
+    html += `<div class="notice">Gerade nicht erreichbar: ${esc(data.failed.join(", "))}</div>`;
+  }
+  if (!list.length) {
+    const msg = S.tab === "saved"
+      ? ["Noch nichts gemerkt", "Tippe bei einem Artikel auf „Merken“, um ihn später zu lesen."]
+      : S.tab === "regional" && !data?.articles?.some((a) => a.category === "regional")
+      ? ["Noch keine Regional-Quellen", "Sag Claude, welche Stadt oder Region du möchtest. Dann kommen die passenden Lokalzeitungen hier hinein."]
+      : query ? ["Keine Treffer", `Nichts gefunden für „${esc(query)}“.`]
+      : ["Keine Artikel", "Prüfe in den Einstellungen, ob Quellen ausgeschaltet oder Begriffe ausgeblendet sind."];
+    el.innerHTML = html + `<div class="empty"><h3>${msg[0]}</h3>${msg[1]}</div>`;
+    return;
+  }
+  let lastDay = null;
+  for (const a of list.slice(0, shown)) {
+    const d = S.tab === "saved" ? null : dayLabel(a.date);
+    if (d && d !== lastDay) { html += `<div class="day">${d}</div>`; lastDay = d; }
+    html += card(a);
+  }
+  if (list.length > shown) html += `<button class="more" id="more">Weitere ${Math.min(PAGE, list.length - shown)} Artikel laden</button>`;
+  el.innerHTML = html;
+}
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 2200);
+}
+
+// ---------- Aktionen ----------
+function findArticle(link) {
+  return (data?.articles || []).find((a) => a.link === link) || S.saved.find((a) => a.link === link);
+}
+function markRead(link) {
+  if (S.read.includes(link)) return;
+  S.read.push(link);
+  if (S.read.length > 1500) S.read = S.read.slice(-1000);
+  store.set("read", S.read);
+}
+
+$("tabs").addEventListener("click", (e) => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  S.tab = b.dataset.tab; store.set("tab", S.tab); shown = PAGE;
+  render(); window.scrollTo({ top: 0 });
+});
+
+$("list").addEventListener("click", async (e) => {
+  if (e.target.id === "more") { shown += PAGE; render(); return; }
+  const art = e.target.closest("article"); if (!art) return;
+  const link = art.dataset.link;
+  if (e.target.closest("a.main")) { markRead(link); setTimeout(() => art.classList.add("read"), 300); return; }
+  const act = e.target.closest("button")?.dataset.act;
+  const a = findArticle(link);
+  if (act === "save" && a) {
+    const i = S.saved.findIndex((s) => s.link === link);
+    if (i >= 0) { S.saved.splice(i, 1); toast("Aus der Merkliste entfernt"); }
+    else { S.saved.unshift(a); toast("Gemerkt"); }
+    store.set("saved", S.saved); render();
+  }
+  if (act === "share" && a) {
+    try {
+      if (navigator.share) await navigator.share({ title: a.title, url: a.link });
+      else { await navigator.clipboard.writeText(a.link); toast("Link kopiert"); }
+    } catch {}
+  }
+});
+
+let qTimer;
+$("q").addEventListener("input", (e) => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => { query = e.target.value.trim(); shown = PAGE; render(); }, 150);
+});
+$("refresh").addEventListener("click", () => load(true));
+
+// ---------- Einstellungen ----------
+function openSheet(open) {
+  $("sheet").hidden = !open; $("sheetBg").hidden = !open;
+  document.body.style.overflow = open ? "hidden" : "";
+  if (open) renderSettings();
+}
+$("openSettings").addEventListener("click", () => openSheet(true));
+$("sheetBg").addEventListener("click", () => openSheet(false));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") openSheet(false); });
+
+function renderSettings() {
+  $("blockChips").innerHTML = S.blocked.map((w, i) =>
+    `<span class="chip">${esc(w)}<button data-i="${i}" aria-label="${esc(w)} entfernen">✕</button></span>`).join("")
+    || '<span class="hint">Noch keine Begriffe.</span>';
+  const cats = Object.fromEntries((data?.categories || []).map((c) => [c.id, c.name]));
+  $("sourceList").innerHTML = (data?.sources || []).map((s, i) => `<div class="row">
+      <label for="src${i}">${esc(s.name)} <small>· ${esc(cats[s.category] || "")}</small></label>
+      <input type="checkbox" id="src${i}" data-src="${esc(s.name)}" ${S.hiddenSources.includes(s.name) ? "" : "checked"}>
+    </div>`).join("");
+  for (const b of $("themeSeg").children) b.setAttribute("aria-pressed", b.dataset.v === S.theme);
+  for (const b of $("sizeSeg").children) b.setAttribute("aria-pressed", Number(b.dataset.v) === S.scale);
+  $("imgToggle").checked = S.images;
+  $("readToggle").checked = S.hideRead;
+}
+$("blockForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const w = $("blockInput").value.trim();
+  if (w && !S.blocked.includes(w)) { S.blocked.push(w); store.set("blocked", S.blocked); }
+  $("blockInput").value = ""; renderSettings(); render();
+});
+$("blockChips").addEventListener("click", (e) => {
+  const i = e.target.closest("button")?.dataset.i; if (i === undefined) return;
+  S.blocked.splice(Number(i), 1); store.set("blocked", S.blocked); renderSettings(); render();
+});
+$("sourceList").addEventListener("change", (e) => {
+  const n = e.target.dataset.src; if (!n) return;
+  S.hiddenSources = e.target.checked ? S.hiddenSources.filter((x) => x !== n) : [...S.hiddenSources, n];
+  store.set("hiddenSources", S.hiddenSources); render();
+});
+$("themeSeg").addEventListener("click", (e) => {
+  const v = e.target.dataset.v; if (!v) return;
+  S.theme = v; store.set("theme", v); applyLook(); renderSettings();
+});
+$("sizeSeg").addEventListener("click", (e) => {
+  const v = e.target.dataset.v; if (!v) return;
+  S.scale = Number(v); store.set("scale", S.scale); applyLook(); renderSettings();
+});
+$("imgToggle").addEventListener("change", (e) => { S.images = e.target.checked; store.set("images", S.images); render(); });
+$("readToggle").addEventListener("change", (e) => { S.hideRead = e.target.checked; store.set("hideRead", S.hideRead); render(); });
+
+// ---------- Start ----------
+applyLook();
+data = store.get("cache", null);
+if (data) render();
+load(false);
+store.set("lastVisit", new Date().toISOString());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && data && Date.now() - new Date(data.updated) > 15 * 60000) load(false);
+});
+setInterval(() => data && render(), 60000);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
