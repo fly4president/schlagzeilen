@@ -27,7 +27,14 @@ jobs:
         run: |
           git config user.name "nachrichten-bot"
           git config user.email "nachrichten-bot@users.noreply.github.com"
-          git add docs/news.json
-          git commit -m "Nachrichten aktualisiert" || exit 0
-          git pull --rebase
-          git push
+          cp docs/news.json /tmp/news.json
+          for i in 1 2 3; do
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            cp /tmp/news.json docs/news.json
+            git add docs/news.json
+            git commit -q -m "Nachrichten aktualisiert" || exit 0
+            git push -q && exit 0
+            sleep 5
+          done
+          exit 1
