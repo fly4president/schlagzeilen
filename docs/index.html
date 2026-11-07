@@ -127,6 +127,35 @@ article.read h2, article.read p { opacity: 0.55; }
 .actions svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .actions button.on { color: var(--accent); }
 .actions button.on svg { fill: currentColor; }
+/* Mehr zum Thema */
+.strip {
+  grid-column: 1 / -1; display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory;
+  margin-top: 8px; padding-bottom: 4px; scrollbar-width: none;
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.strip::-webkit-scrollbar { display: none; }
+.rcard {
+  flex: 0 0 72%; max-width: 300px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line);
+  color: inherit; text-decoration: none;
+}
+.rcard .meta b { color: var(--accent); }
+.rcard h3 {
+  margin: 0; font: 500 0.95em/1.3 var(--font-head);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rcard .meta { display: flex; gap: 6px; font-size: 0.75em; color: var(--muted); }
+.rcard.read h3 { opacity: 0.55; }
+.topic-btn {
+  grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 8px; padding: 10px 14px; border-radius: 999px; background: var(--accent-soft);
+  color: var(--ink); font-size: 0.88em; font-weight: 500;
+}
+.topic-btn svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.topic-btn .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+#topicList article { grid-template-columns: 1fr auto; }
+#topicList .lead { font-size: 0.75em; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 18px 0 0; }
 .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
 .empty h3 { font: 500 1.2em var(--font-head); color: var(--ink); margin: 0 0 6px; }
 .more { display: block; margin: 20px auto 0; padding: 10px 22px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
@@ -219,13 +248,26 @@ input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent);
     </div>
   </div>
 </section>
+<section class="sheet" id="topicSheet" hidden aria-label="Mehr zum Thema">
+  <div class="wrap">
+    <div class="grab"></div>
+    <h3>Mehr zum Thema</h3>
+    <div id="topicList"></div>
+  </div>
+</section>
 <div class="toast" id="toast" hidden></div>
 
 <script>
 const ICON = {
   bookmark: '<svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg>',
   share: '<svg viewBox="0 0 24 24"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 13v7h14v-7"/></svg>',
+  topic: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="14" height="16" rx="2"/><path d="M7 8h6M7 12h6M7 16h3M20 7v12a2 2 0 0 1-2 2"/></svg>',
 };
+let byId = {};
+function relatedOf(a) {
+  return (a.related || []).map((id) => byId[id])
+    .filter((r) => r && !S.hiddenSources.includes(r.source) && !isBlocked(r));
+}
 const PAGE = 40;
 
 // ---------- Speicher ----------
@@ -246,6 +288,12 @@ const S = {
   lastVisit: store.get("lastVisit", null),
 };
 let data = null, shown = PAGE, query = "";
+const expanded = new Set();
+function setData(d) {
+  data = d;
+  byId = {};
+  for (const a of data?.articles || []) if (a.id) byId[a.id] = a;
+}
 const prevVisit = S.lastVisit;
 
 const $ = (id) => document.getElementById(id);
@@ -286,11 +334,11 @@ async function load(manual) {
   try {
     const r = await fetch("news.json?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
-    data = await r.json();
+    setData(await r.json());
     store.set("cache", data);
     if (manual) toast("Aktualisiert");
   } catch {
-    data = data || store.get("cache", null);
+    if (!data) setData(store.get("cache", null));
     toast(data ? "Keine Verbindung, zeige gespeicherte Nachrichten" : "Nachrichten konnten nicht geladen werden");
   } finally {
     btn.classList.remove("spin");
@@ -327,8 +375,21 @@ function renderTabs() {
   }).join("");
 }
 
-function card(a) {
+function rcard(r) {
+  return `<a class="rcard ${S.read.includes(r.link) ? "read" : ""}" href="${esc(r.link)}" target="_blank" rel="noopener" data-rlink="${esc(r.link)}">
+    <span class="meta"><b>${esc(r.source)}</b><span>· ${rel(r.date)}</span></span>
+    <h3>${esc(r.title)}</h3></a>`;
+}
+
+function card(a, plain) {
   const saved = S.saved.some((s) => s.link === a.link);
+  const related = plain ? [] : relatedOf(a);
+  let topic = "";
+  if (related.length) {
+    const showStrip = S.read.includes(a.link) || expanded.has(a.link);
+    topic = (showStrip ? `<div class="strip">${related.slice(0, 6).map(rcard).join("")}</div>` : "")
+      + `<button class="topic-btn" data-act="topic">${ICON.topic}Mehr zum Thema dieser Meldung <span class="n">${related.length}</span></button>`;
+  }
   const isNew = prevVisit && a.date && a.date > prevVisit && S.tab !== "saved";
   const img = S.images && a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
   return `<article class="${S.read.includes(a.link) ? "read" : ""}" data-link="${esc(a.link)}">
@@ -339,7 +400,7 @@ function card(a) {
     <div class="actions">
       <button data-act="save" class="${saved ? "on" : ""}">${ICON.bookmark}${saved ? "Gemerkt" : "Merken"}</button>
       <button data-act="share">${ICON.share}Teilen</button>
-    </div>
+    </div>${topic}
   </article>`;
 }
 
@@ -398,18 +459,22 @@ $("tabs").addEventListener("click", (e) => {
   render(); window.scrollTo({ top: 0 });
 });
 
-$("list").addEventListener("click", async (e) => {
+async function onListClick(e) {
   if (e.target.id === "more") { shown += PAGE; render(); return; }
+  const rc = e.target.closest(".rcard");
+  if (rc) { markRead(rc.dataset.rlink); setTimeout(rerender, 400); return; }
   const art = e.target.closest("article"); if (!art) return;
   const link = art.dataset.link;
-  if (e.target.closest("a.main")) { markRead(link); setTimeout(() => art.classList.add("read"), 300); return; }
+  // Nach dem Lesen erscheint "Mehr zum Thema" unter dem Artikel
+  if (e.target.closest("a.main")) { markRead(link); setTimeout(rerender, 400); return; }
   const act = e.target.closest("button")?.dataset.act;
   const a = findArticle(link);
+  if (act === "topic" && a) { openTopic(a); return; }
   if (act === "save" && a) {
     const i = S.saved.findIndex((s) => s.link === link);
     if (i >= 0) { S.saved.splice(i, 1); toast("Aus der Merkliste entfernt"); }
     else { S.saved.unshift(a); toast("Gemerkt"); }
-    store.set("saved", S.saved); render();
+    store.set("saved", S.saved); rerender();
   }
   if (act === "share" && a) {
     try {
@@ -417,7 +482,31 @@ $("list").addEventListener("click", async (e) => {
       else { await navigator.clipboard.writeText(a.link); toast("Link kopiert"); }
     } catch {}
   }
-});
+}
+$("list").addEventListener("click", onListClick);
+$("topicList").addEventListener("click", onListClick);
+
+function openTopic(a) {
+  const others = relatedOf(a);
+  $("topicList").innerHTML = card(a, true)
+    + `<div class="lead">${others.length} weitere ${others.length === 1 ? "Quelle" : "Quellen"}</div>`
+    + others.map((r) => card(r, true)).join("");
+  openSheet("topicSheet", true);
+  $("topicSheet").scrollTop = 0;
+}
+// Liste und offenes Themen-Blatt neu zeichnen, ohne die Scrollposition zu verlieren
+function rerender() {
+  render();
+  if (!$("topicSheet").hidden) {
+    $("topicList").querySelectorAll("article").forEach((el) => {
+      el.classList.toggle("read", S.read.includes(el.dataset.link));
+      const saved = S.saved.some((s) => s.link === el.dataset.link);
+      const b = el.querySelector('[data-act="save"]');
+      b.classList.toggle("on", saved);
+      b.lastChild.textContent = saved ? "Gemerkt" : "Merken";
+    });
+  }
+}
 
 let qTimer;
 $("q").addEventListener("input", (e) => {
@@ -427,14 +516,16 @@ $("q").addEventListener("input", (e) => {
 $("refresh").addEventListener("click", () => load(true));
 
 // ---------- Einstellungen ----------
-function openSheet(open) {
-  $("sheet").hidden = !open; $("sheetBg").hidden = !open;
+function openSheet(id, open) {
+  for (const s of ["sheet", "topicSheet"]) $(s).hidden = !(open && s === id);
+  $("sheetBg").hidden = !open;
   document.body.style.overflow = open ? "hidden" : "";
-  if (open) renderSettings();
+  if (open && id === "sheet") renderSettings();
 }
-$("openSettings").addEventListener("click", () => openSheet(true));
-$("sheetBg").addEventListener("click", () => openSheet(false));
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") openSheet(false); });
+const closeSheets = () => openSheet(null, false);
+$("openSettings").addEventListener("click", () => openSheet("sheet", true));
+$("sheetBg").addEventListener("click", closeSheets);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheets(); });
 
 function renderSettings() {
   $("blockChips").innerHTML = S.blocked.map((w, i) =>
@@ -478,7 +569,7 @@ $("readToggle").addEventListener("change", (e) => { S.hideRead = e.target.checke
 
 // ---------- Start ----------
 applyLook();
-data = store.get("cache", null);
+setData(store.get("cache", null));
 if (data) render();
 load(false);
 store.set("lastVisit", new Date().toISOString());

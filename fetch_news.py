@@ -27,6 +27,7 @@ NS = {
     "dc": "http://purl.org/dc/elements/1.1/",
 }
 TAG_RE = re.compile(r"<[^>]+>")
+AD_RE = re.compile(r"\s*\(?(anzeige|werbung|sponsored|advertorial|deal|deals)\b\)?\s*[:|–-]", re.I)
 IMG_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.I)
 
 
@@ -112,6 +113,8 @@ def parse_feed(data, feed):
         link = (it["link"] or "").strip()
         if not title or not link:
             continue
+        if AD_RE.match(title):  # bezahlte Beitraege, die manche Feeds untermischen
+            continue
         d = parse_date(it["date"])
         summary = clean(it["raw"], 280)
         if summary.lower() in ("none", "null", title.lower()):
@@ -140,6 +143,74 @@ def fetch(feed):
         return [], feed["name"]
 
 
+# ---------- "Mehr zum Thema": aehnliche Artikel anderer Quellen ----------
+STOP = set("""
+aber alle allem allen aller alles also auch auf aus bei beim bereits bis bisher bleibt dabei damit dann
+darf darum dass davon dazu dem den denen der deren des deshalb dessen diese diesem diesen dieser dieses doch
+dort durch eine einem einen einer eines einige erst erste ersten etwa etwas euro fast ganz gegen geht gibt
+gilt haben habe hat hatte hätte heute hier hinter immer ihre ihrem ihren ihrer jahr jahre jahren jetzt kann
+kein keine keinen könnte kommt lange lassen lässt laut mehr mehrere sich mehr muss müssen nach nachdem neue
+neuen neuer neues nicht noch nun nur oder ohne rund schon sehr seid sein seine seinem seinen seiner seit
+selbst sich sind sollen soll sondern sowie statt steht über unter viel viele vielen vom von vor wahl wann
+war waren warum was weil weiter weitere welche wenn werden wieder wird wurde wurden zum zur zwei zwischen
+diesem dürfen will wollen woche wochen montag dienstag mittwoch donnerstag freitag samstag sonntag
+news live ticker liveblog newsblog aktuell aktuelle meldung bericht prozent millionen milliarden menschen
+deutschland deutschen deutsche heißt sagt sagte zeigt zeigen neu ersten letzten künftig künftigen gerade
+""".split())
+WORD_RE = re.compile(r"[a-zäöüß0-9]+")
+
+
+def tokens(text):
+    out = []
+    for w in WORD_RE.findall(text.lower()):
+        if len(w) < 4 or w in STOP or w.isdigit():
+            continue
+        out.append(w[:7])  # grober Wortstamm: "Stabschefs" ~ "Stabschef"
+    return out
+
+
+def add_related(articles, threshold=0.36, max_related=8, max_hours=48):
+    import math
+    from collections import Counter
+    vecs = []
+    for a in articles:
+        tf = Counter(tokens(a["title"]) * 2 + tokens(a["summary"]))
+        vecs.append(tf)
+    df = Counter(t for v in vecs for t in v)
+    n = len(articles)
+    idf = {t: math.log(n / c) for t, c in df.items() if c > 1}  # Wort nur in 1 Artikel: hilft nicht
+    weighted = []
+    for v in vecs:
+        w = {t: c * idf[t] for t, c in v.items() if t in idf}
+        norm = math.sqrt(sum(x * x for x in w.values())) or 1
+        weighted.append({t: x / norm for t, x in w.items()})
+    index = {}
+    for i, w in enumerate(weighted):
+        for t in w:
+            index.setdefault(t, []).append(i)
+    times = [datetime.fromisoformat(a["date"]) if a["date"] else None for a in articles]
+    for i, w in enumerate(weighted):
+        scores = {}
+        for t, x in w.items():
+            for j in index[t]:
+                if j != i:
+                    scores[j] = scores.get(j, 0) + x * weighted[j][t]
+        best = {}
+        for j, s in scores.items():
+            if s < threshold or articles[j]["source"] == articles[i]["source"]:
+                continue
+            if times[i] and times[j] and abs(times[i] - times[j]) > timedelta(hours=max_hours):
+                continue
+            # pro Zeitung nur der passendste Artikel (Spiegel und Spiegel Ausland zaehlen als eine)
+            paper = articles[j]["source"].split()[0]
+            if paper == articles[i]["source"].split()[0]:
+                continue
+            if s > best.get(paper, (0, None))[0]:
+                best[paper] = (s, j)
+        ranked = sorted(best.values(), reverse=True)[:max_related]
+        articles[i]["related"] = [articles[j]["id"] for _, j in ranked]
+
+
 def main():
     cfg = json.loads((BASE / "feeds.json").read_text(encoding="utf-8"))
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -161,6 +232,10 @@ def main():
             seen.add(key)
             articles.append(a)
     articles.sort(key=lambda a: a["date"] or "", reverse=True)
+    import hashlib
+    for a in articles:
+        a["id"] = hashlib.sha1(a["link"].encode()).hexdigest()[:10]
+    add_related(articles)
 
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps({
